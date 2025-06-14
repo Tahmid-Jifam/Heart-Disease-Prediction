@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heart Disease Prediction UI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>💓 Heart Disease Risk Checker</h1>
+    <form id="healthForm">
+      <input type="number" id="age" placeholder="Age" required />
+      <select id="sex" required>
+        <option value="">Gender</option>
+        <option value="1">Male</option>
+        <option value="0">Female</option>
+      </select>
+      <input type="number" id="bp" placeholder="Resting Blood Pressure (mmHg)" required />
+      <input type="number" id="chol" placeholder="Cholesterol (mg/dL)" required />
+      <input type="number" id="fbs" placeholder="Fasting Blood Sugar (>120 mg/dL: 1 = True)" required />
+      <input type="number" id="heartRate" placeholder="Max Heart Rate Achieved" required />
+      <select id="chestPain" required>
+        <option value="">Chest Pain Type</option>
+        <option value="0">Typical Angina</option>
+        <option value="1">Atypical Angina</option>
+        <option value="2">Non‑anginal Pain</option>
+        <option value="3">Asymptomatic</option>
+      </select>
+      <button type="submit">Check Risk</button>
+    </form>
+    <div id="result"></div>
+    <canvas id="riskChart"></canvas>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
