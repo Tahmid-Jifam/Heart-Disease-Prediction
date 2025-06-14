@@ -1,5 +1,3 @@
-Sure! Here is a simple, clean **README.md** text just for your **Heart Disease Prediction UI** project:
-
 ```markdown
 # Heart Disease Prediction UI
 
