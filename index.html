@@ -2,37 +2,405 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Heart Disease Prediction UI</title>
-  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    @media (max-width: 600px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    
+    button {
+      grid-column: span 2;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    @media (max-width: 600px) {
+      button {
+        grid-column: span 1;
+      }
+    }
+    
+    button:hover {
+      background-color: #c0392b;
+    }
+    
+    #result {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 5px;
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+    }
+    
+    .risk-meter {
+      height: 20px;
+      background-color: #e9ecef;
+      border-radius: 10px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    
+    .risk-indicator {
+      height: 100%;
+      width: 0%;
+      transition: width 1s ease-in-out;
+    }
+    
+    .risk-details {
+      margin-bottom: 20px;
+    }
+    
+    .risk-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    
+    .risk-icon {
+      margin-right: 10px;
+      color: #e74c3c;
+      font-size: 18px;
+    }
+    
+    .disclaimer {
+      text-align: center;
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-top: 20px;
+    }
+    
+    #riskChart {
+      margin-top: 20px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>💓 Heart Disease Risk Checker</h1>
+    <h1>Heart Disease Prediction Checker</h1>
     <form id="healthForm">
-      <input type="number" id="age" placeholder="Age" required />
+      <input type="number" id="age" placeholder="Age" required min="18" max="120" />
       <select id="sex" required>
         <option value="">Gender</option>
         <option value="1">Male</option>
         <option value="0">Female</option>
       </select>
-      <input type="number" id="bp" placeholder="Resting Blood Pressure (mmHg)" required />
-      <input type="number" id="chol" placeholder="Cholesterol (mg/dL)" required />
-      <input type="number" id="fbs" placeholder="Fasting Blood Sugar (>120 mg/dL: 1 = True)" required />
-      <input type="number" id="heartRate" placeholder="Max Heart Rate Achieved" required />
+      <input type="number" id="bp" placeholder="Resting Blood Pressure (mmHg)" required min="80" max="200" />
+      <input type="number" id="chol" placeholder="Cholesterol (mg/dL)" required min="100" max="500" />
+      <select id="fbs" required>
+        <option value="">Fasting Blood Sugar</option>
+        <option value="1">Greater than 120 mg/dL</option>
+        <option value="0">Less than or equal to 120 mg/dL</option>
+      </select>
+      <input type="number" id="heartRate" placeholder="Max Heart Rate Achieved" required min="60" max="220" />
       <select id="chestPain" required>
-        <option value="">Chest Pain Type</option>
+        <option value="" disabled selected>Select Chest Pain Type</option>
         <option value="0">Typical Angina</option>
         <option value="1">Atypical Angina</option>
-        <option value="2">Non‑anginal Pain</option>
+        <option value="2">Non-anginal Pain</option>
         <option value="3">Asymptomatic</option>
+        <option value="4">Sharp Stabbing Pain</option>
+        <option value="5">Burning Sensation</option>
+        <option value="6">Tightness or Pressure</option>
+        <option value="7">Radiating Pain to Arm or Jaw</option>
+        <option value="8">Intermittent Chest Pain</option>
+        <option value="9">Chest Discomfort on Rest</option>
       </select>
       <button type="submit">Check Risk</button>
     </form>
-    <div id="result"></div>
-    <canvas id="riskChart"></canvas>
+    
+    <div id="result" class="hidden">
+      <h2>Your Heart Health Assessment</h2>
+      <div class="risk-level">
+        <p>Risk Level: <span id="riskText"></span></p>
+        <div class="risk-meter">
+          <div id="riskIndicator" class="risk-indicator"></div>
+        </div>
+      </div>
+      
+      <div id="riskDetails" class="risk-details">
+        <!-- Risk details will be inserted here -->
+      </div>
+      
+      <canvas id="riskChart"></canvas>
+      
+      <p class="disclaimer">This assessment is for informational purposes only and should not replace professional medical advice.</p>
+    </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('healthForm');
+      const resultDiv = document.getElementById('result');
+      const riskIndicator = document.getElementById('riskIndicator');
+      const riskText = document.getElementById('riskText');
+      const riskDetails = document.getElementById('riskDetails');
+      let riskChart;
+      
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form values
+        const age = parseInt(document.getElementById('age').value);
+        const sex = parseInt(document.getElementById('sex').value);
+        const bp = parseInt(document.getElementById('bp').value);
+        const chol = parseInt(document.getElementById('chol').value);
+        const fbs = parseInt(document.getElementById('fbs').value);
+        const heartRate = parseInt(document.getElementById('heartRate').value);
+        const chestPain = parseInt(document.getElementById('chestPain').value);
+        
+        // Calculate risk (simplified algorithm for demonstration)
+        let riskScore = 0;
+        
+        // Age factor
+        if (age > 60) riskScore += 25;
+        else if (age > 45) riskScore += 15;
+        else if (age > 30) riskScore += 5;
+        
+        // Gender factor
+        if (sex === 1) riskScore += 10; // Male
+        
+        // Blood pressure factor
+        if (bp > 140) riskScore += 20;
+        else if (bp > 120) riskScore += 10;
+        
+        // Cholesterol factor
+        if (chol > 240) riskScore += 20;
+        else if (chol > 200) riskScore += 10;
+        
+        // Fasting blood sugar factor
+        if (fbs === 1) riskScore += 10;
+        
+        // Heart rate factor
+        if (heartRate > 180 || heartRate < 100) riskScore += 10;
+        
+        // Chest pain factor
+        if ([0, 1, 6].includes(chestPain)) riskScore += 15;
+        else if ([4, 7].includes(chestPain)) riskScore += 10;
+        else if (chestPain === 9) riskScore += 20;
+        
+        // Cap the risk score at 100
+        riskScore = Math.min(riskScore, 100);
+        
+        // Display results
+        resultDiv.classList.remove('hidden');
+        
+        // Smooth scroll to results
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+        // Update risk indicator
+        riskIndicator.style.width = `${riskScore}%`;
+        
+        // Set color based on risk
+        if (riskScore < 30) {
+          riskIndicator.style.backgroundColor = '#2ecc71'; // Green
+          riskText.textContent = 'Low Risk';
+          riskText.style.color = '#2ecc71';
+        } else if (riskScore < 60) {
+          riskIndicator.style.backgroundColor = '#f39c12'; // Yellow/Orange
+          riskText.textContent = 'Moderate Risk';
+          riskText.style.color = '#f39c12';
+        } else {
+          riskIndicator.style.backgroundColor = '#e74c3c'; // Red
+          riskText.textContent = 'High Risk';
+          riskText.style.color = '#e74c3c';
+        }
+        
+        // Generate risk details
+        let details = '';
+        
+        if (age > 45) {
+          details += `<div class="risk-item">
+            <span class="risk-icon">⚠️</span>
+            <p>Age is a significant risk factor. Risk increases with age, particularly after 45.</p>
+          </div>`;
+        }
+        
+        if (sex === 1) {
+          details += `<div class="risk-item">
+            <span class="risk-icon">⚠️</span>
+            <p>Men generally have a higher risk of heart disease than women before menopause.</p>
+          </div>`;
+        }
+        
+        if (bp > 120) {
+          details += `<div class="risk-item">
+            <span class="risk-icon">⚠️</span>
+            <p>Your blood pressure is ${bp > 140 ? 'high' : 'elevated'}. High blood pressure can damage arteries.</p>
+          </div>`;
+        }
+        
+        if (chol > 200) {
+          details += `<div class="risk-item">
+            <span class="risk-icon">⚠️</span>
+            <p>Your cholesterol level is ${chol > 240 ? 'high' : 'borderline high'}. High cholesterol can lead to plaque buildup.</p>
+          </div>`;
+        }
+        
+        if (fbs === 1) {
+          details += `<div class="risk-item">
+            <span class="risk-icon">⚠️</span>
+            <p>Elevated blood sugar levels can damage blood vessels and the nerves that control your heart.</p>
+          </div>`;
+        }
+        
+        if (details === '') {
+          details = `<div class="risk-item">
+            <span class="risk-icon" style="color: #2ecc71;">✓</span>
+            <p>Your risk factors appear to be within normal ranges. Continue maintaining a healthy lifestyle.</p>
+          </div>`;
+        }
+        
+        riskDetails.innerHTML = details;
+        
+        // Create or update chart
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        
+        // Prepare data for chart
+        const labels = ['Age', 'Gender', 'Blood Pressure', 'Cholesterol', 'Blood Sugar', 'Heart Rate', 'Chest Pain'];
+        
+        // Calculate individual risk contributions
+        const ageRisk = age > 60 ? 25 : (age > 45 ? 15 : (age > 30 ? 5 : 0));
+        const sexRisk = sex === 1 ? 10 : 0;
+        const bpRisk = bp > 140 ? 20 : (bp > 120 ? 10 : 0);
+        const cholRisk = chol > 240 ? 20 : (chol > 200 ? 10 : 0);
+        const fbsRisk = fbs === 1 ? 10 : 0;
+        const hrRisk = (heartRate > 180 || heartRate < 100) ? 10 : 0;
+        
+        let cpRisk = 0;
+        if ([0, 1, 6].includes(chestPain)) cpRisk = 15;
+        else if ([4, 7].includes(chestPain)) cpRisk = 10;
+        else if (chestPain === 9) cpRisk = 20;
+        
+        const data = [ageRisk, sexRisk, bpRisk, cholRisk, fbsRisk, hrRisk, cpRisk];
+        
+        // Destroy previous chart if it exists
+        if (riskChart) {
+          riskChart.destroy();
+        }
+        
+        // Create new chart
+        riskChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Risk Contribution',
+              data: data,
+              backgroundColor: [
+                'rgba(231, 76, 60, 0.7)',
+                'rgba(52, 152, 219, 0.7)',
+                'rgba(241, 196, 15, 0.7)',
+                'rgba(46, 204, 113, 0.7)',
+                'rgba(155, 89, 182, 0.7)',
+                'rgba(230, 126, 34, 0.7)',
+                'rgba(149, 165, 166, 0.7)'
+              ],
+              borderColor: [
+                'rgba(231, 76, 60, 1)',
+                'rgba(52, 152, 219, 1)',
+                'rgba(241, 196, 15, 1)',
+                'rgba(46, 204, 113, 1)',
+                'rgba(155, 89, 182, 1)',
+                'rgba(230, 126, 34, 1)',
+                'rgba(149, 165, 166, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 25,
+                title: {
+                  display: true,
+                  text: 'Risk Points'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `Risk points: ${context.raw}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
